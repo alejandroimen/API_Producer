@@ -5,22 +5,22 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/alejandroimen/API_Consumer/src/users/application"
+	"github.com/alejandroimen/API_Producer/src/users/application"
 	"github.com/gin-gonic/gin"
 )
 
-type UpdateusersController struct {
-	updateusers *application.Updateusers
+type UpdateUserController struct {
+	updateUser *application.UpdateUser
 }
 
-func NewUpdateusersController(updateusers *application.Updateusers) *UpdateusersController {
-	return &UpdateusersController{updateusers: updateusers}
+func NewUpdateUsersController(updateUser *application.UpdateUser) *UpdateUserController {
+	return &UpdateUserController{updateUser: updateUser}
 }
 
-func (update *UpdateusersController) Handle(ctx *gin.Context) {
+func (update *UpdateUserController) Handle(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID de user inválido"})
+		ctx.JSON(400, gin.H{"error": "ID de usuario inválido"})
 		return
 	}
 
@@ -34,20 +34,20 @@ func (update *UpdateusersController) Handle(ctx *gin.Context) {
 		return
 	}
 
-	if err := update.updateusers.Run(id, request.Email, request.Name, request.Password); err != nil {
+	if err := update.updateUser.Run(id, request.Email, request.Name, request.Password); err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(200, gin.H{"message": "user actualizado correctamente"})
+	ctx.JSON(200, gin.H{"message": "usuario actualizado correctamente"})
 }
 
 // Controlador para Short Polling
-func (update *UpdateusersController) ShortPoll(ctx *gin.Context) {
+func (update *UpdateUserController) ShortPoll(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "No hay datos nuevos"})
 }
 
 // Controlador para Long Polling
-func (update *UpdateusersController) LongPoll(ctx *gin.Context) {
+func (update *UpdateUserController) LongPoll(ctx *gin.Context) {
 	timeout := time.After(30 * time.Second)
 	select {
 	case <-timeout:

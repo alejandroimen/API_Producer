@@ -1,11 +1,11 @@
 package repository
 
-import "github.com/alejandroimen/API_Consumer/src/users/domain/entities"
+import "github.com/alejandroimen/API_Producer/src/users/domain/entities"
 
-type usersRepository interface {
-	Save(users entities.users) error
-	FindByID(id int) (*entities.users, error)
-	FindAll() ([]entities.users, error)
-	Update(users entities.users) error
+type UserRepository interface {
+	Save(user entities.User) error
+	FindByID(id int) (*entities.User, error)
+	FindAll() ([]entities.User, error)
+	Update(user entities.User) error
 	Delete(id int) error
 }

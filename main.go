@@ -3,15 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/alejandroimen/API_Consumer/src/core"
-	productApp "github.com/alejandroimen/API_Consumer/src/products/application"
-	productController "github.com/alejandroimen/API_Consumer/src/products/infrastructure/controllers"
-	productRepo "github.com/alejandroimen/API_Consumer/src/products/infrastructure/repository"
-	productRoutes "github.com/alejandroimen/API_Consumer/src/products/infrastructure/routes"
-	usersApp "github.com/alejandroimen/API_Consumer/src/users/application"
-	usersController "github.com/alejandroimen/API_Consumer/src/users/infrastructure/controllers"
-	usersRepo "github.com/alejandroimen/API_Consumer/src/users/infrastructure/repository"
-	usersRoutes "github.com/alejandroimen/API_Consumer/src/users/infrastructure/routes"
+	"github.com/alejandroimen/API_Producer/src/core"
+	usersApp "github.com/alejandroimen/API_Producer/src/users/application"
+	usersController "github.com/alejandroimen/API_Producer/src/users/infrastructure/controllers"
+	usersRepo "github.com/alejandroimen/API_Producer/src/users/infrastructure/repository"
+	usersRoutes "github.com/alejandroimen/API_Producer/src/users/infrastructure/routes"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,41 +20,25 @@ func main() {
 	defer db.Close()
 
 	// Repositorios
-	productRepository := productRepo.NewProductRepoMySQL(db)
-	usersRepository := usersRepo.NewCreateusersRepoMySQL(db)
-
-	// Casos de uso para productos
-	createProduct := productApp.NewCreateProduct(productRepository)
-	getProducts := productApp.NewGetProducts(productRepository)
-	updateProduct := productApp.NewUpdateProduct(productRepository)
-	deleteProduct := productApp.NewDeleteProduct(productRepository)
+	usersRepository := usersRepo.NewCreateUserRepoMySQL(db)
 
 	// Casos de uso para users
-	createusers := usersApp.NewCreateusers(usersRepository)
-	getuserss := usersApp.NewGetuserss(usersRepository)
-	deleteuserss := usersApp.NewDeleteusers(usersRepository)
-	updateuserss := usersApp.NewUpdateusers(usersRepository)
-
-	// Controladores para productos
-	createProductController := productController.NewCreateProductController(createProduct)
-	getProductsController := productController.NewGetProductsController(getProducts)
-	updateProductController := productController.NewUpdateProductController(updateProduct)
-	deleteProductController := productController.NewDeleteProductController(deleteProduct)
+	createUsers := usersApp.NewCreateUsers(usersRepository)
+	getUsers := usersApp.NewGetUsers(usersRepository)
+	deleteUsers := usersApp.NewDeleteUsers(usersRepository)
+	updateUsers := usersApp.NewUpdateUsers(usersRepository)
 
 	// Controladores para users
-	createusersController := usersController.NewCreateusersController(createusers)
-	getusersController := usersController.NewuserssController(getuserss)
-	deleteusersController := usersController.NewDeleteusersController(deleteuserss)
-	updateusersController := usersController.NewUpdateusersController(updateuserss)
+	createusersController := usersController.NewCreateUsersController(createUsers)
+	getusersController := usersController.NewUsersController(getUsers)
+	deleteusersController := usersController.NewDeleteUsersController(deleteUsers)
+	updateusersController := usersController.NewUpdateUsersController(updateUsers)
 
 	// Configuración del enrutador de Gin
 	r := gin.Default()
 
-	// Configurar rutas de productos
-	productRoutes.SetupProductRoutes(r, createProductController, getProductsController, updateProductController, deleteProductController)
-
 	// Configurar rutas de users
-	usersRoutes.SetupusersRoutes(r, createusersController, getusersController, deleteusersController, updateusersController)
+	usersRoutes.SetupUserRoutes(r, createusersController, getusersController, deleteusersController, updateusersController)
 
 	// Iniciar servidor
 	log.Println("server started at :8080")

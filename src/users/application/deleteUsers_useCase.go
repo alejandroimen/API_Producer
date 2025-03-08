@@ -3,21 +3,21 @@ package application
 import (
 	"fmt"
 
-	"github.com/alejandroimen/API_Consumer/src/users/domain/repository"
+	"github.com/alejandroimen/API_Producer/src/users/domain/repository"
 )
 
-type DeleteUsers struct {
-	repo repository.usersRepository
+type DeleteUser struct {
+	repo repository.UserRepository
 }
 
-func NewDeleteUsers(repo repository.usersRepository) *DeleteUsers {
-	return &DeleteUsers{repo: repo}
+func NewDeleteUsers(repo repository.UserRepository) *DeleteUser {
+	return &DeleteUser{repo: repo}
 }
 
-func (du *DeleteUsers) Run(id int) error {
+func (du *DeleteUser) Run(id int) error {
 	_, err := du.repo.FindByID(id)
 	if err != nil {
-		return fmt.Errorf("users no encontrado: %w", err)
+		return fmt.Errorf("user no encontrado: %w", err)
 	}
 
 	if err := du.repo.Delete(id); err != nil {

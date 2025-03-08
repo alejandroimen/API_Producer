@@ -3,31 +3,32 @@ package application
 import (
 	"fmt"
 
-	"github.com/alejandroimen/API_Consumer/src/users/domain/repository"
+	_ "github.com/alejandroimen/API_Producer/src/users/domain/entities"
+	"github.com/alejandroimen/API_Producer/src/users/domain/repository"
 )
 
-type UpdateUsers struct {
-	repo repository.usersRepository
+type UpdateUser struct {
+	repo repository.UserRepository
 }
 
-func NewUpdateUsers(repo repository.usersRepository) *UpdateUsers {
-	return &UpdateUsers{repo: repo}
+func NewUpdateUsers(repo repository.UserRepository) *UpdateUser {
+	return &UpdateUser{repo: repo}
 }
 
-func (us *UpdateUsers) Run(id int, name string, email string, password string) error {
-	users, err := us.repo.FindByID(id)
+func (us *UpdateUser) Run(id int, name string, email string, password string) error {
+	user, err := us.repo.FindByID(id)
 	if err != nil {
-		return fmt.Errorf("user no encontrado: %w", err)
+		return fmt.Errorf("usuario no encontrado: %w", err)
 	}
 
-	//actualizo los campos del user:
-	users.Name = name
-	users.Email = email
-	users.Password = password
+	//actualizo los campos del usuario:
+	user.Name = name
+	user.Email = email
+	user.Password = password
 
 	//guardo los cambios en el repositorio:
-	if err := us.repo.Update(*users); err != nil {
-		return fmt.Errorf("error actualizando el user: %w", err)
+	if err := us.repo.Update(*user); err != nil {
+		return fmt.Errorf("error actualizando el usuario: %w", err)
 	}
 
 	return nil

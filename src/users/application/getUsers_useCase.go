@@ -1,22 +1,22 @@
 package application
 
 import (
-	"github.com/alejandroimen/API_Consumer/src/users/domain/repository"
-	"github.com/alejandroimen/API_Consumer/src/users/domain/entities"
+	"github.com/alejandroimen/API_Producer/src/users/domain/entities"
+	"github.com/alejandroimen/API_Producer/src/users/domain/repository"
 )
 
 type GetUsers struct {
-	repo repository.usersRepository
+	repo repository.UserRepository
 }
 
-func NewGetUsers(repo repository.usersRepository) *GetUsers {
+func NewGetUsers(repo repository.UserRepository) *GetUsers {
 	return &GetUsers{repo: repo}
 }
 
-func (gu *GetUsers) Run() ([]entities.users, error) {
-	userss, err := gu.repo.FindAll()
+func (gu *GetUsers) Run() ([]entities.User, error) {
+	users, err := gu.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
-	return userss, nil
+	return users, nil
 }

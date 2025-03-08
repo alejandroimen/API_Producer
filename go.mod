@@ -1,4 +1,4 @@
-module github.com/alejandroimen/API_Consumer
+module github.com/alejandroimen/API_Producer
 
 go 1.23.4
 

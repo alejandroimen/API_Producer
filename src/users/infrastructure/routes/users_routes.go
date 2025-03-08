@@ -1,30 +1,30 @@
 package routes
 
 import (
-	"github.com/alejandroimen/API_Consumer/src/users/infrastructure/controllers"
+	"github.com/alejandroimen/API_Producer/src/users/infrastructure/controllers"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupusersRoutes(r *gin.Engine, createusersController *controllers.CreateusersController, getusersController *controllers.GetuserssController, deleteusersController *controllers.DeleteusersController, updateusersController *controllers.UpdateusersController) {
+func SetupUserRoutes(r *gin.Engine, createUserController *controllers.CreateUserController, getUserController *controllers.GetUsersController, deleteUserController *controllers.DeleteUserController, updateUserController *controllers.UpdateUserController) {
 	// Rutas CRUD
-	r.POST("/userss", createusersController.Handle)
-	r.GET("/userss", getusersController.Handle)
-	r.DELETE("/userss/:id", deleteusersController.Handle)
-	r.PUT("/userss/:id", updateusersController.Handle)
+	r.POST("/users", createUserController.Handle)
+	r.GET("/users", getUserController.Handle)
+	r.DELETE("/users/:id", deleteUserController.Handle)
+	r.PUT("/users/:id", updateUserController.Handle)
 
 	// Nuevas rutas para polling en POST
-	r.POST("/userss/poll/short", createusersController.ShortPoll)
-	r.POST("/userss/poll/long", createusersController.LongPoll)
+	r.POST("/users/poll/short", createUserController.ShortPoll)
+	r.POST("/users/poll/long", createUserController.LongPoll)
 
 	// Nuevas rutas para polling en DELETE
-	r.DELETE("/userss/poll/short", deleteusersController.ShortPoll)
-	r.DELETE("/userss/poll/long", deleteusersController.LongPoll)
+	r.DELETE("/users/poll/short", deleteUserController.ShortPoll)
+	r.DELETE("/users/poll/long", deleteUserController.LongPoll)
 
 	// Nuevas rutas para polling en PUT
-	r.PUT("/userss/poll/short", updateusersController.ShortPoll)
-	r.PUT("/userss/poll/long", updateusersController.LongPoll)
+	r.PUT("/users/poll/short", updateUserController.ShortPoll)
+	r.PUT("/users/poll/long", updateUserController.LongPoll)
 
 	// Nuevas rutas para polling en GET
-	r.GET("/userss/poll/short", getusersController.ShortPoll)
-	r.GET("/userss/poll/long", getusersController.LongPoll)
+	r.GET("/users/poll/short", getUserController.ShortPoll)
+	r.GET("/users/poll/long", getUserController.LongPoll)
 }

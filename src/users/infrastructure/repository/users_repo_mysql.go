@@ -4,70 +4,70 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/alejandroimen/API_Consumer/src/users/domain/entities"
+	"github.com/alejandroimen/API_Producer/src/users/domain/entities"
 )
 
-type usersRepoMySQL struct {
+type UserRepoMySQL struct {
 	db *sql.DB
 }
 
-func NewCreateusersRepoMySQL(db *sql.DB) *usersRepoMySQL {
-	return &usersRepoMySQL{db: db}
+func NewCreateUserRepoMySQL(db *sql.DB) *UserRepoMySQL {
+	return &UserRepoMySQL{db: db}
 }
 
-func (r *usersRepoMySQL) Save(users entities.users) error {
+func (r *UserRepoMySQL) Save(User entities.User) error {
 	query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
-	_, err := r.db.Exec(query, users.Name, users.Email, users.Password)
+	_, err := r.db.Exec(query, User.Name, User.Email, User.Password)
 	if err != nil {
-		return fmt.Errorf("error insertando users: %w", err)
+		return fmt.Errorf("error insertando User: %w", err)
 	}
 	return nil
 }
 
-func (r *usersRepoMySQL) FindByID(id int) (*entities.users, error) {
+func (r *UserRepoMySQL) FindByID(id int) (*entities.User, error) {
 	query := "SELECT id, name, email FROM users WHERE id = ?"
 	row := r.db.QueryRow(query, id)
 
-	var users entities.users
-	if err := row.Scan(&users.ID, &users.Name, &users.Email); err != nil {
-		return nil, fmt.Errorf("error buscando el users: %w", err)
+	var User entities.User
+	if err := row.Scan(&User.ID, &User.Name, &User.Email); err != nil {
+		return nil, fmt.Errorf("error buscando el User: %w", err)
 	}
-	return &users, nil
+	return &User, nil
 }
 
-func (r *usersRepoMySQL) FindAll() ([]entities.users, error) {
+func (r *UserRepoMySQL) FindAll() ([]entities.User, error) {
 	query := "SELECT id, name, email, password FROM users"
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("error buscando los users: %w", err)
+		return nil, fmt.Errorf("error buscando los Users: %w", err)
 	}
 	defer rows.Close()
 
-	var users []entities.users
+	var Users []entities.User
 	for rows.Next() {
-		var users entities.users
-		if err := rows.Scan(&users.ID, &users.Name, &users.Email, &users.Password); err != nil {
+		var User entities.User
+		if err := rows.Scan(&User.ID, &User.Name, &User.Email, &User.Password); err != nil {
 			return nil, err
 		}
-		users = append(users, users)
+		Users = append(Users, User)
 	}
-	return users, nil
+	return Users, nil
 }
 
-func (r *usersRepoMySQL) Update(users entities.users) error {
+func (r *UserRepoMySQL) Update(User entities.User) error {
 	query := "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?"
-	_, err := r.db.Exec(query, users.Name, users.Email, users.Password, users.ID)
+	_, err := r.db.Exec(query, User.Name, User.Email, User.Password, User.ID)
 	if err != nil {
-		return fmt.Errorf("error actualizando users: %w", err)
+		return fmt.Errorf("error actualizando User: %w", err)
 	}
 	return nil
 }
 
-func (r *usersRepoMySQL) Delete(id int) error {
+func (r *UserRepoMySQL) Delete(id int) error {
 	query := "DELETE FROM users WHERE id = ?"
 	_, err := r.db.Exec(query, id)
 	if err != nil {
-		return fmt.Errorf("error eliminando users: %w", err)
+		return fmt.Errorf("error eliminando User: %w", err)
 	}
 	return nil
 }
