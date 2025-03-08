@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/alejandroimen/API_Producer/src/users/application"
@@ -18,23 +17,19 @@ func NewUpdateUsersController(updateUser *application.UpdateUser) *UpdateUserCon
 }
 
 func (update *UpdateUserController) Handle(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID de usuario inválido"})
-		return
-	}
+	curp := ctx.Param("curp")
 
 	var request struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Nombre     string `json:"name"`
+		Apellido    string `json:"email"`
+		Correo string `json:"password"`
 	}
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(400, gin.H{"error": "petición del body inválida"})
 		return
 	}
 
-	if err := update.updateUser.Run(id, request.Email, request.Name, request.Password); err != nil {
+	if err := update.updateUser.Run(curp, request.Nombre, request.Apellido, request.Correo); err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}

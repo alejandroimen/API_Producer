@@ -16,10 +16,6 @@ func SetupUserRoutes(r *gin.Engine, createUserController *controllers.CreateUser
 	r.POST("/users/poll/short", createUserController.ShortPoll)
 	r.POST("/users/poll/long", createUserController.LongPoll)
 
-	// Nuevas rutas para polling en DELETE
-	r.DELETE("/users/poll/short", deleteUserController.ShortPoll)
-	r.DELETE("/users/poll/long", deleteUserController.LongPoll)
-
 	// Nuevas rutas para polling en PUT
 	r.PUT("/users/poll/short", updateUserController.ShortPoll)
 	r.PUT("/users/poll/long", updateUserController.LongPoll)

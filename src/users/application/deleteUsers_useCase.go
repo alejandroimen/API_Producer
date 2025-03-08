@@ -14,13 +14,13 @@ func NewDeleteUsers(repo repository.UserRepository) *DeleteUser {
 	return &DeleteUser{repo: repo}
 }
 
-func (du *DeleteUser) Run(id int) error {
-	_, err := du.repo.FindByID(id)
+func (du *DeleteUser) Run(curp string) error {
+	_, err := du.repo.FindByCurp(curp)
 	if err != nil {
 		return fmt.Errorf("user no encontrado: %w", err)
 	}
 
-	if err := du.repo.Delete(id); err != nil {
+	if err := du.repo.Delete(curp); err != nil {
 		return fmt.Errorf("error eliminando el usuairo: %w", err)
 	}
 	return nil

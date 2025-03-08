@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/alejandroimen/API_Producer/src/users/application"
@@ -18,11 +17,7 @@ func NewDeleteUsersController(deleteUser *application.DeleteUser) *DeleteUserCon
 }
 
 func (du *DeleteUserController) Handle(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID de usuario inválido"})
-		return
-	}
+	id := ctx.Param("curp")
 
 	if err := du.deleteUser.Run(id); err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
