@@ -17,8 +17,8 @@ func NewCreateUsers(repo repository.UserRepository) *CreateUsers {
 	return &CreateUsers{repo: repo}
 }
 
-func (cu *CreateUsers) Run(name string, email string, password string) error {
-	user := entities.User{Name: name, Email: email, Password: password}
+func (cu *CreateUsers) Run(curp string, nombre string, apellido string, correo string) error {
+	user := entities.User{Curp: curp, Nombre: nombre, Apellido: apellido, Correo: correo}
 	if err := cu.repo.Save(user); err != nil {
 		return fmt.Errorf("error al guardar el usuario: %w", err)
 	}

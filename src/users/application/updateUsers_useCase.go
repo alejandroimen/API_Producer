@@ -15,16 +15,17 @@ func NewUpdateUsers(repo repository.UserRepository) *UpdateUser {
 	return &UpdateUser{repo: repo}
 }
 
-func (us *UpdateUser) Run(id int, name string, email string, password string) error {
-	user, err := us.repo.FindByID(id)
+func (us *UpdateUser) Run(curp string, nombre string, correo string, apellido string) error {
+	user, err := us.repo.FindByCurp(curp)
 	if err != nil {
 		return fmt.Errorf("usuario no encontrado: %w", err)
 	}
 
 	//actualizo los campos del usuario:
-	user.Name = name
-	user.Email = email
-	user.Password = password
+	user.Curp = curp
+	user.Nombre = nombre
+	user.Apellido = apellido
+	user.Correo = correo
 
 	//guardo los cambios en el repositorio:
 	if err := us.repo.Update(*user); err != nil {

@@ -18,12 +18,13 @@ func NewCreateUsersController(CreateUsers *application.CreateUsers) *CreateUserC
 }
 
 func (c *CreateUserController) Handle(ctx *gin.Context) {
-	log.Println("Petición de crear un usuario, recibido")
+	log.Println("Petición de crear un usuario recibida")
 
 	var request struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Curp      string `json:"curp"`
+		Nombre    string `json:"nombre"`
+		Apellido  string `json:"apellido"`
+		Correo    string `json:"correo"`
 	}
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -31,15 +32,15 @@ func (c *CreateUserController) Handle(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{"error": "petición del body inválida"})
 		return
 	}
-	log.Printf("Creando usuario: Name=%s, email=%s", request.Name, request.Email)
+	log.Printf("Creando usuario: curp=%s, nombre=%s, apellido=%s, correo=%s", request.Curp, request.Nombre, request.Apellido, request.Correo)
 
-	if err := c.CreateUsers.Run(request.Email, request.Name, request.Password); err != nil {
+	if err := c.CreateUsers.Run(request.Curp, request.Nombre, request.Apellido, request.Correo); err != nil {
 		log.Printf("Error creando el usuario: %v", err)
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	log.Printf("Usuario creado exitosamente")
+	log.Println("Usuario creado exitosamente")
 	ctx.JSON(201, gin.H{"message": "usuario creado exitosamente"})
 }
 
