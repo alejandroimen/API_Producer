@@ -13,7 +13,7 @@ type CreateUsers struct {
 }
 
 // constructor de createusers, que recibe un repositorio como parametro y lo asigna al campo repo. siendo configurable
-func NewCreateUsers(repo repository.UserRepository) *CreateUsers {
+func NewCreateUser(repo repository.UserRepository) *CreateUsers {
 	return &CreateUsers{repo: repo}
 }
 

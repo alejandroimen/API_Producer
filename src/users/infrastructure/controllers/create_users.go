@@ -43,11 +43,6 @@ func (c *CreateUserController) Handle(ctx *gin.Context) {
 	ctx.JSON(201, gin.H{"message": "usuario creado exitosamente"})
 }
 
-// Controlador para Short Polling
-func (c *CreateUserController) ShortPoll(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"message": "No hay datos nuevos"})
-}
-
 // Controlador para Long Polling
 func (c *CreateUserController) LongPoll(ctx *gin.Context) {
 	timeout := time.After(30 * time.Second)

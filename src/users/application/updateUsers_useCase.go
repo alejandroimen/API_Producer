@@ -11,7 +11,7 @@ type UpdateUser struct {
 	repo repository.UserRepository
 }
 
-func NewUpdateUsers(repo repository.UserRepository) *UpdateUser {
+func NewUpdateUser(repo repository.UserRepository) *UpdateUser {
 	return &UpdateUser{repo: repo}
 }
 

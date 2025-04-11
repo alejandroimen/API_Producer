@@ -10,7 +10,7 @@ type DeleteUser struct {
 	repo repository.UserRepository
 }
 
-func NewDeleteUsers(repo repository.UserRepository) *DeleteUser {
+func NewDeleteUser(repo repository.UserRepository) *DeleteUser {
 	return &DeleteUser{repo: repo}
 }
 
