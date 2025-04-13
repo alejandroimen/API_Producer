@@ -1,12 +1,16 @@
 package services
 
 import (
+    "log"
 
-	adapters "github.com/alejandroimen/API_Producer/src/users/infrastructure/adapters"
-	"github.com/alejandroimen/API_Producer/src/users/domain/services"
+    "github.com/alejandroimen/API_Producer/src/users/domain/services"
+    "github.com/alejandroimen/API_Producer/src/users/infrastructure/adapters"
 )
 
-// Inicializar el servicio de BCrypt
-func InitRabbitMQ() services. {
-	return adapters.NewCorreo()
+func InitRabbitMQ(connectionString string) services.RabbitMQService {
+    service, err := adapters.NewRabbitMQAdapter(connectionString)
+    if err != nil {
+        log.Fatalf("Error inicializando RabbitMQ: %s", err)
+    }
+    return service
 }

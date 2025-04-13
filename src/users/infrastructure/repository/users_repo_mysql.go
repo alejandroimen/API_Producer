@@ -15,21 +15,39 @@ func NewCreateUserRepoMySQL(db *sql.DB) *UserRepoMySQL {
 	return &UserRepoMySQL{db: db}
 }
 
-func (r *UserRepoMySQL) Save(User entities.User) error {
-	query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
-	_, err := r.db.Exec(query, User.Name, User.Email, User.Password)
+func (r *UserRepoMySQL) Save(User entities.User) (int, error) {
+	query := "INSERT INTO users (curp, name, lastname, phone, email) VALUES (?, ?, ?, ?, ?)"
+	result, err := r.db.Exec(query, User.CURP, User.Name, User.Lastname, User.Phone, User.Email)
 	if err != nil {
-		return fmt.Errorf("error insertando User: %w", err)
+		return 0, fmt.Errorf("error insertando User: %w", err)
 	}
-	return nil
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("error al obtener el ID del usuario: %w", err)
+	}
+
+	return int(id), nil
 }
+
 
 func (r *UserRepoMySQL) FindByID(id int) (*entities.User, error) {
 	query := "SELECT id, name, email FROM users WHERE id = ?"
 	row := r.db.QueryRow(query, id)
 
 	var User entities.User
-	if err := row.Scan(&User.ID, &User.Name, &User.Email); err != nil {
+	if err := row.Scan(&User.ID, User.CURP, &User.Name, &User.Lastname, &User.Phone, &User.Email); err != nil {
+		return nil, fmt.Errorf("error buscando el User: %w", err)
+	}
+	return &User, nil
+}
+
+func (r *UserRepoMySQL) FindByCurp(curp string) (*entities.User, error) {
+	query := "SELECT id, name, email FROM users WHERE id = ?"
+	row := r.db.QueryRow(query, curp)
+
+	var User entities.User
+	if err := row.Scan(&User.ID, User.CURP, &User.Name, &User.Lastname, &User.Phone, &User.Email); err != nil {
 		return nil, fmt.Errorf("error buscando el User: %w", err)
 	}
 	return &User, nil
@@ -46,7 +64,7 @@ func (r *UserRepoMySQL) FindAll() ([]entities.User, error) {
 	var Users []entities.User
 	for rows.Next() {
 		var User entities.User
-		if err := rows.Scan(&User.ID, &User.Name, &User.Email, &User.Password); err != nil {
+		if err := rows.Scan(&User.ID, &User.CURP, &User.Name, &User.Lastname, &User.Phone, &User.Email); err != nil {
 			return nil, err
 		}
 		Users = append(Users, User)
@@ -55,8 +73,8 @@ func (r *UserRepoMySQL) FindAll() ([]entities.User, error) {
 }
 
 func (r *UserRepoMySQL) Update(User entities.User) error {
-	query := "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?"
-	_, err := r.db.Exec(query, User.Name, User.Email, User.Password, User.ID)
+	query := "UPDATE users SET curp = ?, name = ?, lastname = ?, phone = ? email = ? WHERE id = ?"
+	_, err := r.db.Exec(query, User.CURP, User.Name, User.Lastname, User.Phone, User.Email, User.ID)
 	if err != nil {
 		return fmt.Errorf("error actualizando User: %w", err)
 	}
@@ -70,15 +88,4 @@ func (r *UserRepoMySQL) Delete(id int) error {
 		return fmt.Errorf("error eliminando User: %w", err)
 	}
 	return nil
-}
-
-func (r *UserRepoMySQL) FindByEmail(email string) (*entities.User, error) {
-	query := "SELECT Id, Nombre, Email, Contraseña FROM usuarios WHERE Email = ?"
-	row := r.db.QueryRow(query, email)
-
-	var user entities.User
-	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Contraseña); err != nil {
-		return nil, fmt.Errorf("error buscando el usuario: %w", err)
-	}
-	return &user, nil
 }

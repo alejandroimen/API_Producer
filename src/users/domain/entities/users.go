@@ -5,6 +5,6 @@ type User struct {
 	CURP string
 	Name string
 	Lastname string
-	phone string
+	Phone string
 	Email string
 }

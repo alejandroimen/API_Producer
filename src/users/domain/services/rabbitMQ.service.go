@@ -1,5 +1,11 @@
 package services
 
+import (
+/*     "github.com/alejandroimen/API_Producer/src/users/domain/entities"
+ */)
+
 type RabbitMQService interface {
-    SendCorreo(asunto string, body string)
+    PublishCreatedUser(idUser int) error
+    StartConsumingCitas ()
+    Close() error
 }

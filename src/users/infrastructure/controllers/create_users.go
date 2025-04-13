@@ -21,9 +21,11 @@ func (c *CreateUserController) Handle(ctx *gin.Context) {
 	log.Println("Petición de crear un usuario, recibido")
 
 	var request struct {
+		CURP     string `json:"curp"`
 		Name     string `json:"name"`
+		Lastname string `json:"lastname"`
+		Phone 	string `json:"phone"`
 		Email    string `json:"email"`
-		Password string `json:"password"`
 	}
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -33,7 +35,7 @@ func (c *CreateUserController) Handle(ctx *gin.Context) {
 	}
 	log.Printf("Creando usuario: Name=%s, email=%s", request.Name, request.Email)
 
-	if err := c.CreateUsers.Run(request.Email, request.Name, request.Password); err != nil {
+	if err := c.CreateUsers.Run(request.CURP, request.Name, request.Lastname, request.Phone, request.Email); err != nil {
 		log.Printf("Error creando el usuario: %v", err)
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return

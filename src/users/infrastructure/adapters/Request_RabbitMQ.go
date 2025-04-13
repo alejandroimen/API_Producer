@@ -1,178 +1,233 @@
 package adapters
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"os"
-	"time"
-
-	"github.com/joho/godotenv"
-	amqp "github.com/streadway/amqp"
-	"github.com/JosephAntony37900/API-Hexagonal-1-Productor/Order/domain/entities"
-	"github.com/JosephAntony37900/API-Hexagonal-1-Productor/Order/domain/repository"
+    "encoding/json"
+    "fmt"
+    "log"
+    
+    "time"
+    "github.com/alejandroimen/API_Producer/src/users/domain/services"
+    amqp "github.com/streadway/amqp"
 )
 
-var conn *amqp.Connection
-var channel *amqp.Channel
-
-func InitRabbitMQ() {
-	
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No se pudo cargar el archivo .env")
-	}
-
-	username := os.Getenv("RABBITMQ_USER")
-	password := os.Getenv("RABBITMQ_PASS")
-	host := os.Getenv("RABBITMQ_HOST")
-	port := os.Getenv("RABBITMQ_PORT")
-
-	rabbitURL := fmt.Sprintf("amqp://%s:%s@%s:%s/", username, password, host, port)
-	
-	var errConn error
-	conn, errConn = amqp.Dial(rabbitURL)
-	if errConn != nil {
-		log.Printf("Error al conectar con RabbitMQ: %s. Reintentando...", errConn)
-		time.Sleep(5 * time.Second)
-		conn, errConn = amqp.Dial(rabbitURL)
-		if errConn != nil {
-			log.Fatalf("Error      definitivo al conectar con RabbitMQ: %s", errConn)
-		}
-	}
-
-	channel, err = conn.Channel()
-	if err != nil {
-		log.Fatalf("Error al abrir un canal en RabbitMQ: %s", err)
-	}
-
-	err = channel.ExchangeDeclare(
-		"orders_exchange", // nombre del exchange
-		"direct",          // tipo
-		true,              // durable
-		false,             // auto-deleted
-		false,             // internal
-		false,             // no-wait
-		nil,               // arguments
-	)
-	if err != nil {
-		log.Fatalf("Error al declarar el exchange: %s", err)
-	}
-
-	queues := []string{"created.order", "order.confirmed", "order.rejected"}
-	for _, queue := range queues {
-		_, err = channel.QueueDeclare(
-			queue,
-			true,  // durable
-			false, // delete when unused
-			false, // exclusive
-			false, // no-wait
-			nil,   // arguments
-		)
-		if err != nil {
-			log.Fatalf("Error al declarar la cola '%s': %s", queue, err)
-		}
-
-		err = channel.QueueBind(
-			queue,           // nombre de la cola
-			queue,           // routing key
-			"orders_exchange", // exchange
-			false,           // no-wait
-			nil,             // arguments
-		)
-		if err != nil {
-			log.Fatalf("Error al hacer binding de la cola '%s': %s", queue, err)
-		}
-	}
-
-	log.Println("Conectado a RabbitMQ exitosamente")
+type RabbitMQAdapter struct {
+    conn    *amqp.Connection
+    channel *amqp.Channel
 }
 
-func CloseRabbitMQ() {
-	if channel != nil {
-		channel.Close()
-	}
-	if conn != nil {
-		conn.Close()
-	}
+// Constructor para RabbitMQAdapter
+func NewRabbitMQAdapter(connectionString string) (services.RabbitMQService, error) {
+    
+    conn, err := amqp.Dial(connectionString)
+    if err != nil {
+        log.Printf("Error al conectar con RabbitMQ: %s. Reintentando...", err)
+        time.Sleep(5 * time.Second)
+        conn, err = amqp.Dial(connectionString)
+        if err != nil {
+            return nil, fmt.Errorf("Error definitivo al conectar con RabbitMQ: %w", err)
+        }
+    }
+
+    channel, err := conn.Channel()
+    if err != nil {
+        return nil, fmt.Errorf("Error al abrir un canal en RabbitMQ: %w", err)
+    }
+
+    err = channel.ExchangeDeclare(
+        "citas", // nombre del exchange
+        "direct",          // tipo
+        true,              // durable
+        false,             // auto-deleted
+        false,             // internal
+        false,             // no-wait
+        nil,               // arguments
+    )
+    if err != nil {
+        return nil, fmt.Errorf("Error al declarar el exchange: %w", err)
+    }
+
+    queues := []string{"citas.pendientes", "citas.confirmadas"}
+    for _, queue := range queues {
+        _, err = channel.QueueDeclare(
+            queue,
+            true,  // durable
+            false, // delete when unused
+            false, // exclusive
+            false, // no-wait
+            nil,   // arguments
+        )
+        if err != nil {
+            return nil, fmt.Errorf("Error al declarar la cola '%s': %w", queue, err)
+        }
+
+        err = channel.QueueBind(
+            queue,           // nombre de la cola
+            queue,           // routing key
+            "citas", // exchange
+            false,           // no-wait
+            nil,             // arguments
+        )
+        if err != nil {
+            return nil, fmt.Errorf("Error al hacer binding de la cola '%s': %w", queue, err)
+        }
+    }
+
+    log.Println("Conectado a RabbitMQ exitosamente")
+    return &RabbitMQAdapter{conn: conn, channel: channel}, nil
 }
 
-func GetChannel() *amqp.Channel {
-	return channel
+func (r *RabbitMQAdapter) PublishCreatedUser(idUser int) error {
+    if r.conn == nil || r.channel == nil || r.conn.IsClosed() {
+        log.Println("Conexión cerrada, intentando reconectar...")
+        err := r.reconnect("amqp://rabbit:rabbit@35.170.173.77:5672/vh")
+        if err != nil {
+            return fmt.Errorf("Error reconectando a RabbitMQ: %w", err)
+        }
+    }
+
+    idJSON, err := json.Marshal(idUser)
+    if err != nil {
+        return fmt.Errorf("Error al convertir el ID de usuario a JSON: %w", err)
+    }
+
+    err = r.channel.Publish(
+        "citas",           // usar el exchange correcto
+        "created.user",    // routing key
+        false,
+        false,
+        amqp.Publishing{
+            ContentType: "application/json",
+            Body:        idJSON,
+        },
+    )
+    if err != nil {
+        return fmt.Errorf("Error al publicar el mensaje en RabbitMQ: %w", err)
+    }
+
+    log.Printf("📬 IdUser %d publicado en la cola 'created.user'", idUser)
+    return nil
 }
 
-func ConsumeConfirmedOrders(repo repository.OrderRepository) {
-	msgs, err := channel.Consume(
-		"order.confirmed",
-		"",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Fatalf("Error al registrar el consumidor para 'order.confirmed': %s", err)
-	}
 
-	log.Println("Consumidor de 'order.confirmed' iniciado correctamente")
-
-	go func() {
-		for d := range msgs {
-			var order entities.Order
-			if err := json.Unmarshal(d.Body, &order); err != nil {
-				log.Printf("Error al decodificar el mensaje de 'order.confirmed': %s", err)
-				continue
-			}
-
-			log.Printf("Mensaje recibido en 'order.confirmed': %+v", order)
-
-			// Actualizar el estado del pedido a "Enviado"
-			order.Estado = "Enviado"
-			if err := repo.Update(order); err != nil {
-				log.Printf("Error al actualizar el pedido %d: %s", order.Id, err)
-				continue
-			}
-
-			log.Printf("Pedido %d confirmado y actualizado a 'Enviado'", order.Id)
-		}
-	}()
+func (r *RabbitMQAdapter) Close() error {
+    if r.channel != nil {
+        r.channel.Close()
+    }
+    if r.conn != nil {
+        r.conn.Close()
+    }
+    log.Println("Conexión con RabbitMQ cerrada")
+    return nil
 }
 
-func ConsumeRejectedOrders(repo repository.OrderRepository) {
-	msgs, err := channel.Consume(
-		"order.rejected",
-		"",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Fatalf("Error al registrar el consumidor para 'order.rejected': %s", err)
-	}
+func (r *RabbitMQAdapter) reconnect(connectionString string) error {
+    conn, err := amqp.Dial(connectionString)
+    if err != nil {
+        return fmt.Errorf("Error al reconectar con RabbitMQ: %w", err)
+    }
 
-	log.Println("Consumidor de 'order.rejected' iniciado correctamente")
+    channel, err := conn.Channel()
+    if err != nil {
+        return fmt.Errorf("Error al reabrir el canal en RabbitMQ: %w", err)
+    }
 
-	go func() {
-		for d := range msgs {
-			var order entities.Order
-			if err := json.Unmarshal(d.Body, &order); err != nil {
-				log.Printf("Error al decodificar el mensaje de 'order.rejected': %s", err)
-				continue
-			}
+    err = channel.ExchangeDeclare(
+        "citas",
+        "direct",
+        true,
+        false,
+        false,
+        false,
+        nil,
+    )
+    if err != nil {
+        return fmt.Errorf("Error al declarar el exchange: %w", err)
+    }
 
-			log.Printf("Mensaje recibido en 'order.rejected': %+v", order)
+    queues := []string{"citas.pendientes", "citas.confirmadas"}
+    for _, queue := range queues {
+        _, err = channel.QueueDeclare(queue, true, false, false, false, nil)
+        if err != nil {
+            return fmt.Errorf("Error al declarar la cola '%s': %w", queue, err)
+        }
 
-			// Actualizar el estado del pedido a "Fallido"
-			order.Estado = "Fallido"
-			if err := repo.Update(order); err != nil {
-				log.Printf("Error al actualizar el pedido %d: %s", order.Id, err)
-				continue
-			}
+        err = channel.QueueBind(queue, queue, "citas", false, nil)
+        if err != nil {
+            return fmt.Errorf("Error al hacer binding de la cola '%s': %w", queue, err)
+        }
+    }
 
-			log.Printf("Pedido %d rechazado y actualizado a 'Fallido'", order.Id)
-		}
-	}()
+    r.conn = conn
+    r.channel = channel
+    log.Println("🔁 Reconexion exitosa a RabbitMQ")
+    return nil
+}
+func (r *RabbitMQAdapter) StartConsumingCitas() {
+    go func() {
+        for {
+            log.Println("👂 Iniciando consumidor de 'citas.confirmadas' y 'citas.pendientes'...")
+
+            if r.conn == nil || r.conn.IsClosed() {
+                log.Println("⚠️ Conexión cerrada. Intentando reconectar...")
+                err := r.reconnect("amqp://rabbit:rabbit@35.170.173.77:5672/vh")
+                if err != nil {
+                    log.Printf("❌ Error al reconectar: %s", err)
+                    time.Sleep(5 * time.Second)
+                    continue
+                }
+            }
+
+            // Para monitorear si se cierra algún canal
+            closeChan := make(chan *amqp.Error)
+            r.conn.NotifyClose(closeChan)
+
+            queues := []string{"citas.confirmadas", "citas.pendientes"}
+
+            for _, queue := range queues {
+                // Se crea un canal separado para cada consumidor
+                ch, err := r.conn.Channel()
+                if err != nil {
+                    log.Printf("❌ Error al abrir canal para cola '%s': %s", queue, err)
+                    continue
+                }
+
+                msgs, err := ch.Consume(
+                    queue,
+                    "",    // consumer tag
+                    true,  // auto-ack
+                    false, // exclusive
+                    false, // no-local
+                    false, // no-wait
+                    nil,   // args
+                )
+                if err != nil {
+                    log.Printf("❌ Error al consumir la cola '%s': %s", queue, err)
+                    ch.Close() // cerramos canal si no sirve
+                    continue
+                }
+
+                go func(queue string, ch *amqp.Channel, msgs <-chan amqp.Delivery) {
+                    defer ch.Close()
+
+                    for msg := range msgs {
+                        var cita map[string]interface{}
+                        if err := json.Unmarshal(msg.Body, &cita); err != nil {
+                            log.Printf("❌ Error al deserializar mensaje de '%s': %s", queue, err)
+                            continue
+                        }
+
+                        log.Printf("📥 Cita recibida de la cola '%s': %+v", queue, cita)
+
+                        // Aquí puedes conectar con WebSocket o lógica extra
+                    }
+                }(queue, ch, msgs)
+            }
+
+            // Esperamos a que la conexión se cierre para reconectar todo
+            err := <-closeChan
+            log.Printf("⚠️ Conexión cerrada con error: %v", err)
+
+            time.Sleep(3 * time.Second)
+        }
+    }()
 }

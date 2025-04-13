@@ -27,14 +27,13 @@ func (update *UpdateUserController) Handle(ctx *gin.Context) {
 	var request struct {
 		Name     string `json:"name"`
 		Email    string `json:"email"`
-		Password string `json:"password"`
 	}
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(400, gin.H{"error": "petición del body inválida"})
 		return
 	}
 
-	if err := update.updateUser.Run(id, request.Email, request.Name, request.Password); err != nil {
+	if err := update.updateUser.Run(id, request.Name, request.Email); err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
